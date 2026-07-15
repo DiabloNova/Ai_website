@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neumorphic AI Chat Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #e6eef8;
+            --raised-shadow: -8px -8px 16px rgba(255, 255, 255, 0.9), 8px 8px 16px rgba(163, 177, 198, 0.5);
+            --sunken-shadow: inset -6px -6px 12px rgba(255, 255, 255, 0.9), inset 6px 6px 12px rgba(163, 177, 198, 0.55);
+
+            --raised-btn-shadow: -4px -4px 10px rgba(255, 255, 255, 0.95), 4px 4px 10px rgba(163, 177, 198, 0.45);
+            --sunken-btn-shadow: inset -3px -3px 8px rgba(255, 255, 255, 0.95), inset 3px 3px 8px rgba(163, 177, 198, 0.5);
+
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --accent-color: #2ecc71; /* Light green accent from image_0.png */
+            --accent-color-rgb: 46, 204, 113;
+            --accent-blue: #3498db;
+
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            outline: none;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(163, 177, 198, 0.5) transparent;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(163, 177, 198, 0.5);
+            border-radius: 10px;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-sans);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            letter-spacing: -0.01em;
+        }
+
+        /* Large, rounded central card scaled to a desktop browser window */
+        .desktop-container {
+            width: 94%;
+            max-width: 1380px;
+            height: 90vh;
+            background: var(--bg-color);
+            border-radius: 36px;
+            box-shadow: var(--raised-shadow);
+            display: flex;
+            flex-direction: column;
+            padding: 28px;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* Header Area */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        /* Monospace system-clock */
+        .system-clock {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--accent-color);
+            padding: 8px 16px;
+            border-radius: 14px;
+            box-shadow: var(--sunken-shadow);
+            text-shadow: 0 0 1px rgba(46, 204, 113, 0.2);
+            letter-spacing: 0.5px;
+        }
+
+        .header-title {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 1.15rem;
+            letter-spacing: 3px;
+            color: var(--text-primary);
+            text-transform: uppercase;
+        }
+
+        /* Neumorphic Category Tabs */
+        .category-tabs {
+            display: flex;
+            gap: 12px;
+            padding: 4px;
+            border-radius: 14px;
+            box-shadow: var(--sunken-shadow);
+        }
+
+        .tab-btn {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: none;
+            background: transparent;
+            padding: 8px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-btn.active {
+            background: var(--bg-color);
+            box-shadow: var(--raised-btn-shadow);
+            color: var(--text-primary);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--text-primary);
+        }
+
+        /* Model Selector Dropdown */
+        .header-center {
+            position: relative;
+        }
+
+        .model-select-wrapper {
+            position: relative;
+            width: 220px;
+        }
+
+        .model-dropdown-trigger {
+            width: 100%;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            background: var(--bg-color);
+            border: none;
+            border-radius: 14px;
+            padding: 12px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: var(--raised-shadow);
+            transition: all 0.2s ease;
+        }
+
+        .model-dropdown-trigger:active, .model-dropdown-trigger.open {
+            box-shadow: var(--sunken-shadow);
+        }
+
+        .model-dropdown-trigger svg {
+            transition: transform 0.2s ease;
+        }
+
+        .model-dropdown-trigger.open svg {
+            transform: rotate(180deg);
+        }
+
+        /* Neumorphic Dropdown Menu */
+        .model-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            width: 100%;
+            background: var(--bg-color);
+            border-radius: 14px;
+            box-shadow: var(--raised-shadow);
+            padding: 8px;
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .model-dropdown-menu.show {
+            display: flex;
+        }
+
+        .model-option {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            border: none;
+            background: transparent;
+            width: 100%;
+        }
+
+        .model-option:hover {
+            background: rgba(255, 255, 255, 0.4);
+            color: var(--text-primary);
+        }
+
+        .model-option.selected {
+            box-shadow: var(--sunken-btn-shadow);
+            color: var(--accent-color);
+        }
+
+        /* Header Right: G-Logo & Avatar */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .g-logo-container {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--bg-color);
+            box-shadow: var(--raised-shadow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--bg-color);
+            box-shadow: var(--raised-shadow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        /* Main Split Container */
+        .main-content {
+            display: flex;
+            flex: 1;
+            gap: 28px;
+            min-height: 0; /* Prevents container from swelling */
+        }
+
+        /* Left Column: Interactive Chat Area */
+        .chat-area {
+            flex: 1.45;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-color);
+            border-radius: 24px;
+            box-shadow: var(--sunken-shadow);
+            padding: 24px;
+            min-height: 0;
+            position: relative;
+        }
+
+        .conversation-log {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            min-height: 0;
+        }
+
+        /* Chat Message Styling */
+        .message-bubble {
+            max-width: 80%;
+            padding: 14px 20px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease-out forwards;
+            position: relative;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-bubble.user {
+            align-self: flex-end;
+            background: var(--bg-color);
+            box-shadow: var(--raised-btn-shadow);
+            color: var(--text-primary);
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-bubble.assistant {
+            align-self: flex-start;
+            background: var(--bg-color);
+            box-shadow: var(--raised-shadow);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* Non-shifting Streaming Container styling */
+        .streaming-container {
+            display: inline;
+            border-right: 2px solid var(--accent-color);
+            animation: cursorBlink 0.8s infinite;
+        }
+
+        @keyframes cursorBlink {
+            0%, 100% { border-color: transparent; }
+            50% { border-color: var(--accent-color); }
+        }
+
+        /* Input Bar Styled like Solar Panels Button from image_0.png */
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--bg-color);
+            border-radius: 18px;
+            box-shadow: var(--raised-shadow);
+            padding: 10px 18px;
+            gap: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .input-wrapper:focus-within {
+            box-shadow: var(--sunken-shadow);
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            font-family: var(--font-sans);
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            padding: 4px 0;
+        }
+
+        .input-wrapper input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.8;
+        }
+
+        .send-button {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: var(--bg-color);
+            border: none;
+            box-shadow: var(--raised-btn-shadow);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-secondary);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .send-button:hover {
+            color: var(--accent-color);
+        }
+
+        .send-button:active {
+            box-shadow: var(--sunken-btn-shadow);
+            color: var(--accent-color);
+        }
+
+        /* Right Column: Analytics Sidebar Panel */
+        .analytics-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            background: var(--bg-color);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: var(--raised-shadow);
+            min-height: 0;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* Section Title in Right Panel */
+        .section-title {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin: 0 0 4px 0;
+        }
+
+        /* Widget Card */
+        .widget-card {
+            background: var(--bg-color);
+            border-radius: 18px;
+            box-shadow: var(--sunken-shadow);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            position: relative;
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .widget-title {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            text-transform: uppercase;
+        }
+
+        /* Text Softly Debossed (Sunken/Tactile) */
+        .debossed-text {
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.9), -1px -1px 1px rgba(163, 177, 198, 0.4);
+        }
+
+        /* Neumorphic Progress Bar for Token Usage */
+        .progress-bar-container {
+            width: 100%;
+            height: 14px;
+            background: var(--bg-color);
+            border-radius: 8px;
+            box-shadow: var(--sunken-shadow);
+            overflow: hidden;
+            position: relative;
+            padding: 2px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 45%; /* Dynamic width updated by JS */
+            background: var(--accent-color);
+            border-radius: 6px;
+            box-shadow: -2px -2px 4px rgba(255, 255, 255, 0.5), 2px 2px 4px rgba(46, 204, 113, 0.4);
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Neumorphic Latency Circular Gauge */
+        .circular-gauge-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            height: 140px;
+        }
+
+        .gauge-svg {
+            transform: rotate(-90deg);
+        }
+
+        /* Neumorphic inner shadow effect inside circular gauge */
+        .gauge-background-circle {
+            fill: none;
+            stroke: rgba(163, 177, 198, 0.25);
+            stroke-width: 10;
+        }
+
+        .gauge-fill-circle {
+            fill: none;
+            stroke: var(--accent-color);
+            stroke-dasharray: 283;
+            stroke-dashoffset: 141.5; /* 50% fill */
+            stroke-width: 10;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s ease;
+        }
+
+        .gauge-overlay-center {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: var(--bg-color);
+            border-radius: 50%;
+            box-shadow: var(--raised-btn-shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .gauge-val {
+            font-family: var(--font-mono);
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .gauge-unit {
+            font-family: var(--font-sans);
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Static and dynamic details */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .metric-mini-card {
+            background: var(--bg-color);
+            border-radius: 14px;
+            box-shadow: var(--sunken-shadow);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .metric-mini-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .metric-mini-value {
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Desktop Container -->
+    <div class="desktop-container" id="app">
+        <!-- Top Navigation Header -->
+        <header>
+            <div class="header-left">
+                <div class="system-clock" id="clock">14:41</div>
+                <div class="header-title">AI Chat</div>
+                <!-- Category Tabs from image_0.png -->
+                <div class="category-tabs">
+                    <button class="tab-btn active">HISTORY</button>
+                    <button class="tab-btn">MODELS</button>
+                    <button class="tab-btn">SETTINGS</button>
+                </div>
+            </div>
+
+            <!-- Model Selection Dropdown (Middle) -->
+            <div class="header-center">
+                <div class="model-select-wrapper">
+                    <button class="model-dropdown-trigger" id="modelTrigger">
+                        <span id="activeModelName">Gemini 1.5 Pro</span>
+                        <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                            <path d="M1 1.5L6 6.5L11 1.5" stroke="#2c3e50" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <div class="model-dropdown-menu" id="modelMenu">
+                        <button class="model-option selected" data-model="gemini">Gemini 1.5 Pro</button>
+                        <button class="model-option" data-model="gemma">Gemma 7B GGUF</button>
+                        <button class="model-option" data-model="qwen">Qwen 14B GGUF</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- G-Logo and Avatar (Right) -->
+            <div class="header-right">
+                <div class="g-logo-container">
+                    <svg viewBox="0 0 24 24" width="22" height="22">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                </div>
+                <div class="user-avatar">
+                    <span>JD</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace Area -->
+        <div class="main-content">
+            <!-- Left Side: Conversation Log -->
+            <div class="chat-area">
+                <div class="conversation-log" id="chatLog">
+                    <!-- Base Conversation -->
+                </div>
+
+                <!-- Input Text Field Area -->
+                <div class="input-wrapper">
+                    <input type="text" id="userInput" placeholder="Ask Gemini..." autocomplete="off">
+                    <button id="sendBtn" class="send-button">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Side: Secondary Panel (Analytics) -->
+            <div class="analytics-panel" id="analyticsPanel">
+                <div>
+                    <h3 class="section-title">Session Summary</h3>
+                    <div class="widget-card">
+                        <div class="widget-header">
+                            <span class="widget-title">Active Model</span>
+                            <span class="debossed-text" id="summaryModel" style="font-size: 0.9rem; color: var(--accent-color);">Gemini 1.5 Pro</span>
+                        </div>
+                        <div class="progress-stats" style="margin-top: 4px;">
+                            <span>Context Status: Active</span>
+                            <span>Temp: 0.7</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="section-title">Token Usage</h3>
+                    <div class="widget-card">
+                        <div class="widget-header">
+                            <span class="widget-title">Context window</span>
+                            <span class="debossed-text" id="tokenPercentage">45%</span>
+                        </div>
+                        <!-- Neumorphic Progress Bar -->
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" id="progressBarFill"></div>
+                        </div>
+                        <div class="progress-stats">
+                            <span id="tokensUsed">5,400 tokens</span>
+                            <span id="maxTokens">12,000 max</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="section-title">Response Metrics</h3>
+                    <div class="widget-card" style="align-items: center; gap: 16px;">
+                        <div style="align-self: flex-start; width: 100%; display: flex; justify-content: space-between;">
+                            <span class="widget-title">Latency Tracker</span>
+                            <span class="debossed-text" id="metricsStatus" style="font-size: 0.8rem; color: var(--accent-blue);">STABLE</span>
+                        </div>
+                        <!-- Neumorphic Circular Gauge -->
+                        <div class="circular-gauge-container">
+                            <svg class="gauge-svg" width="120" height="120">
+                                <circle class="gauge-background-circle" cx="60" cy="60" r="45"></circle>
+                                <circle class="gauge-fill-circle" id="gaugeCircle" cx="60" cy="60" r="45"></circle>
+                            </svg>
+                            <div class="gauge-overlay-center">
+                                <span class="gauge-val" id="latencyVal">280</span>
+                                <span class="gauge-unit">ms</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mini Metrics Grid -->
+                <div class="metrics-grid">
+                    <div class="metric-mini-card">
+                        <span class="metric-mini-label">Speed</span>
+                        <span class="metric-mini-value" id="speedVal">45 t/s</span>
+                    </div>
+                    <div class="metric-mini-card">
+                        <span class="metric-mini-label">Session Msg</span>
+                        <span class="metric-mini-value" id="msgCount">4</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive JS Logic -->
+    <script>
+        // System Clock Synchronization
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${hours}:${minutes}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Model Configurations and state
+        const models = {
+            gemini: {
+                name: 'Gemini 1.5 Pro',
+                tokenUsage: 45, // percent
+                usedTokens: '5,400',
+                maxTokens: '12,000',
+                latency: 280, // ms
+                maxLatency: 600,
+                speed: 45, // t/s
+                color: '#2ecc71',
+                placeholder: 'Ask Gemini...',
+                initialResponse: "I am ready. I can summarize files, write clean code, and retain deep context. How can I help you today?"
+            },
+            gemma: {
+                name: 'Gemma 7B GGUF',
+                tokenUsage: 18,
+                usedTokens: '1,440',
+                maxTokens: '8,192',
+                latency: 120,
+                maxLatency: 600,
+                speed: 72,
+                color: '#3498db',
+                placeholder: 'Ask Gemma GGUF...',
+                initialResponse: "Gemma 7B GGUF initialized locally. Optimized for low-latency queries and direct CPU inference. Ask me anything."
+            },
+            qwen: {
+                name: 'Qwen 14B GGUF',
+                tokenUsage: 35,
+                usedTokens: '2,800',
+                maxTokens: '8,192',
+                latency: 195,
+                maxLatency: 600,
+                speed: 58,
+                color: '#9b59b6',
+                placeholder: 'Ask Qwen GGUF...',
+                initialResponse: "Qwen 14B GGUF running in local session. Excellent multilingual capability and structured instruction compliance active."
+            }
+        };
+
+        let currentModel = 'gemini';
+        let msgCounter = 4;
+
+        // UI Element Selectors
+        const activeModelName = document.getElementById('activeModelName');
+        const summaryModel = document.getElementById('summaryModel');
+        const tokenPercentage = document.getElementById('tokenPercentage');
+        const progressBarFill = document.getElementById('progressBarFill');
+        const tokensUsed = document.getElementById('tokensUsed');
+        const maxTokens = document.getElementById('maxTokens');
+        const latencyVal = document.getElementById('latencyVal');
+        const gaugeCircle = document.getElementById('gaugeCircle');
+        const speedVal = document.getElementById('speedVal');
+        const msgCount = document.getElementById('msgCount');
+        const userInput = document.getElementById('userInput');
+        const chatLog = document.getElementById('chatLog');
+        const modelTrigger = document.getElementById('modelTrigger');
+        const modelMenu = document.getElementById('modelMenu');
+
+        // Dynamic visual update for the Gauge
+        function setLatencyGauge(percent, val, color) {
+            latencyVal.textContent = val;
+            // Arc length: 2 * PI * R where R is 45 = 282.74
+            const arcLength = 282.74;
+            const offset = arcLength - (percent * arcLength);
+            gaugeCircle.style.strokeDashoffset = offset;
+            gaugeCircle.style.stroke = color;
+        }
+
+        // Apply chosen model details to the UI
+        function applyModelData(modelKey) {
+            currentModel = modelKey;
+            const data = models[modelKey];
+
+            activeModelName.textContent = data.name;
+            summaryModel.textContent = data.name;
+            summaryModel.style.color = data.color;
+
+            // Progress Bar
+            tokenPercentage.textContent = `${data.tokenUsage}%`;
+            progressBarFill.style.width = `${data.tokenUsage}%`;
+            progressBarFill.style.background = data.color;
+            tokensUsed.textContent = `${data.usedTokens} tokens`;
+            maxTokens.textContent = `${data.maxTokens} max`;
+
+            // Latency Circular Gauge
+            const latencyPct = Math.min(data.latency / data.maxLatency, 1);
+            setLatencyGauge(latencyPct, data.latency, data.color);
+
+            // Speed
+            speedVal.textContent = `${data.speed} t/s`;
+
+            // Input Placeholder
+            userInput.placeholder = data.placeholder;
+        }
+
+        // Initial loading state
+        applyModelData('gemini');
+
+        // Populate initial conversational dialogue mimicking image_0 / realistic Gemini 1.5 chat
+        const initialDialogues = [
+            { sender: 'user', text: "Can you analyze the system usage and summarize the advantages of Gemini 1.5 Pro compared to smaller local GGUF models?" },
+            { sender: 'assistant', text: "Certainly! **Gemini 1.5 Pro** offers an exceptionally deep context window (up to 2M tokens) and advanced reasoning. However, local GGUF models (like **Gemma** or **Qwen**) excel in offline privacy, zero hosting costs, and ultra-low latency for smaller-scale tasks." }
+        ];
+
+        function loadInitialDialogue() {
+            chatLog.innerHTML = '';
+            initialDialogues.forEach(msg => {
+                const bubble = document.createElement('div');
+                bubble.className = `message-bubble ${msg.sender}`;
+                bubble.innerHTML = msg.text;
+                chatLog.appendChild(bubble);
+            });
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+        loadInitialDialogue();
+
+        // Model Selection Dropdown toggle logic
+        modelTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            modelTrigger.classList.toggle('open');
+            modelMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', () => {
+            modelTrigger.classList.remove('open');
+            modelMenu.classList.remove('show');
+        });
+
+        document.querySelectorAll('.model-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.model-option').forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+
+                const modelKey = option.getAttribute('data-model');
+                applyModelData(modelKey);
+
+                modelTrigger.classList.remove('open');
+                modelMenu.classList.remove('show');
+
+                // Simulate model switch streaming greeting
+                simulateStreamingGreeting(models[modelKey].initialResponse);
+            });
+        });
+
+        // Non-shifting, highly stable Streaming text simulator
+        function simulateStreamingGreeting(fullText) {
+            // Remove previous temporary streaming assistant bubbles if any
+            const existingTemp = document.getElementById('tempStreamingBubble');
+            if (existingTemp) existingTemp.remove();
+
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble assistant';
+            bubble.id = 'tempStreamingBubble';
+
+            // Fixed height boundary or display block ensures no visual shifting
+            bubble.style.minHeight = "48px";
+            bubble.style.transition = "none";
+
+            const textSpan = document.createElement('span');
+            const cursorSpan = document.createElement('span');
+            cursorSpan.className = 'streaming-container';
+
+            bubble.appendChild(textSpan);
+            bubble.appendChild(cursorSpan);
+            chatLog.appendChild(bubble);
+            chatLog.scrollTop = chatLog.scrollHeight;
+
+            let index = 0;
+            // Clear interval if active
+            if (window.streamingInterval) clearInterval(window.streamingInterval);
+
+            // Fast local streaming mimic
+            window.streamingInterval = setInterval(() => {
+                if (index < fullText.length) {
+                    textSpan.innerHTML += fullText.charAt(index);
+                    index++;
+                    chatLog.scrollTop = chatLog.scrollHeight;
+                } else {
+                    clearInterval(window.streamingInterval);
+                    cursorSpan.remove();
+                    bubble.removeAttribute('id'); // promote to standard chat bubble
+                    msgCounter++;
+                    msgCount.textContent = msgCounter;
+                }
+            }, 18);
+        }
+
+        // Custom User Input Send simulation
+        function handleSend() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            // Append User Message
+            const userBubble = document.createElement('div');
+            userBubble.className = 'message-bubble user';
+            userBubble.textContent = text;
+            chatLog.appendChild(userBubble);
+            userInput.value = '';
+            chatLog.scrollTop = chatLog.scrollHeight;
+
+            msgCounter++;
+            msgCount.textContent = msgCounter;
+
+            // Simulate assistant streaming response
+            setTimeout(() => {
+                const replies = [
+                    "Analyzing the requested context parameters... the local inference pipelines are operating in healthy states. Shall we proceed with model evaluation?",
+                    "That is an excellent parameter setting. I will compile your target instructions and apply the local weights immediately.",
+                    "Executing advanced analytics on the GGUF pipeline. Latency performance remains optimal at the configured thread allocation."
+                ];
+                const randomReply = replies[Math.floor(Math.random() * replies.length)];
+                simulateStreamingGreeting(randomReply);
+
+                // Update analytics dynamically
+                const activeModel = models[currentModel];
+                // Slightly randomize token count
+                const addedTokens = Math.floor(Math.random() * 150) + 50;
+                let currentTokensVal = parseInt(activeModel.usedTokens.replace(/,/g, '')) + addedTokens;
+                activeModel.usedTokens = currentTokensVal.toLocaleString();
+
+                // Calculate new usage percentage
+                const maxTokensInt = parseInt(activeModel.maxTokens.replace(/,/g, ''));
+                activeModel.tokenUsage = Math.min(Math.round((currentTokensVal / maxTokensInt) * 100), 100);
+
+                // Randomize latency slightly
+                const latShift = Math.floor(Math.random() * 30) - 15;
+                activeModel.latency = Math.max(80, activeModel.latency + latShift);
+
+                // Re-apply metrics to sidebar UI
+                applyModelData(currentModel);
+            }, 600);
+        }
+
+        document.getElementById('sendBtn').addEventListener('click', handleSend);
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+
+        // Trigger category tab interactive active state toggling
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
